@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<!-- saved from url=(0058)file:///C:/Users/anupa/Downloads/index_Version4%20(2).html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Birthday Reel for Bestie</title>
+  <style>
+    :root{--bg1:#ff6b6b;--bg2:#4ecdc4;--bg3:#45b7d1;--bg4:#f7dc6f}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:Arial,Helvetica,sans-serif;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(45deg,var(--bg1),var(--bg2),var(--bg3),var(--bg4));
+      background-size:400% 400%;animation:gradientShift 10s ease infinite;overflow:hidden;
+      color:#fff;text-align:center;padding:1rem;
+    }
+    @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .stage{max-width:920px;width:100%}
+    .message{font-size:clamp(1.2rem,2.5vw,2rem);text-shadow:2px 2px 6px rgba(0,0,0,.45);animation:fadeInOut 5s ease-in-out infinite;padding:1rem}
+    @keyframes fadeInOut{0%,100%{opacity:0}50%{opacity:1}}
+    .emoji{font-size:clamp(2rem,5vw,3rem);display:block;margin:0.5rem 0}
+    /* Play controls */
+    .controls{position:fixed;right:1rem;bottom:1rem;display:flex;gap:.5rem;align-items:center}
+    .btn{
+      background:rgba(0,0,0,0.2);border:0;color:#fff;padding:.6rem .9rem;border-radius:8px;cursor:pointer;font-size:1rem;
+      box-shadow:0 4px 10px rgba(0,0,0,.25)
+    }
+    .btn:focus{outline:2px solid rgba(255,255,255,.25)}
+    .hint{font-size:.95rem;margin-top:.6rem;opacity:.95}
+    @media (max-width:520px){ .controls{right:.5rem;bottom:.5rem} }
+  </style>
+</head>
+<body>
+  <main class="stage" id="stage" aria-live="polite">
+    <div id="messageContainer" class="message" role="status"><span class="emoji" aria-hidden="true">🎊</span>May your birthday be as sweet as you are! 🍬</div>
+    <div id="tapHint" class="hint" style="display: none;">Tap Play to start the birthday sound 🎵</div>
+  </main>
+
+  <!-- Audio (loop) -->
+  <audio id="birthdayAudio" loop="" preload="auto">
+    <source src="C:\Users\anupa\Downloads\happy-birthday-357371 (1).mp3" type="audio/mpeg">
+    Your browser does not support the audio element. 
+  </audio>
+
+  <!-- Play/Pause / Mute controls -->
+  <div class="controls" aria-hidden="false">
+    <button id="playBtn" class="btn" aria-pressed="false" title="Play birthday sound">Play 🎵</button>
+    <button id="muteBtn" class="btn" aria-pressed="false" title="Mute / Unmute">Mute 🔈</button>
+  </div>
+
+  <script>
+    const messages = [
+      "🎉 Happy Birthday to my amazing bestie! 🎂",
+      "You light up the world like a birthday candle! 🕯️",
+      "Wishing you a year filled with joy, laughter, and cake! 🍰",
+      "You're the best friend ever – here's to another epic year! 🥳",
+      "May your birthday be as sweet as you are! 🍬",
+      "Cheers to you, my ride-or-die! Let's make more memories! 📸",
+      "Happy Birthday! You're one in a million! 💖",
+      "Another year older, but still the coolest! 😎",
+      "Blow out the candles and make a wish – you deserve it! 🎈",
+      "Forever grateful for our friendship! Happy Birthday! 🌟"
+    ];
+
+    let index = 0;
+    const container = document.getElementById('messageContainer');
+    const audio = document.getElementById('birthdayAudio');
+    const playBtn = document.getElementById('playBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const tapHint = document.getElementById('tapHint');
+
+    function updateMessage() {
+      container.innerHTML = `<span class="emoji" aria-hidden="true">🎊</span>${messages[index]}`;
+      index = (index + 1) % messages.length;
+    }
+
+    // Configurable timing
+    const duration = 24 * 60 * 60 * 1000; // 24 hours
+    const interval = 5000; // 5 seconds
+    const endTime = Date.now() + duration;
+
+    const loop = setInterval(() => {
+      if (Date.now() >= endTime) {
+        clearInterval(loop);
+        if (!audio.paused) audio.pause();
+        container.innerHTML = '<span class="emoji" aria-hidden="true">🎉</span>24-hour celebration complete! Happy Birthday again! 🎉';
+      } else {
+        updateMessage();
+      }
+    }, interval);
+
+    updateMessage();
+
+    // Play control logic: try autoplay, but show Play button if blocked
+    audio.volume = 0.7;
+    audio.play().then(() => {
+      // autoplay worked; update UI
+      playBtn.textContent = 'Pause ⏸️';
+      playBtn.setAttribute('aria-pressed','true');
+      tapHint.style.display = 'none';
+    }).catch(() => {
+      // autoplay blocked — show hint
+      playBtn.textContent = 'Play 🎵';
+      playBtn.setAttribute('aria-pressed','false');
+      tapHint.style.display = 'block';
+    });
+
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play().then(()=> {
+          playBtn.textContent = 'Pause ⏸️';
+          playBtn.setAttribute('aria-pressed','true');
+          tapHint.style.display = 'none';
+        }).catch(()=> {
+          tapHint.style.display = 'block';
+        });
+      } else {
+        audio.pause();
+        playBtn.textContent = 'Play 🎵';
+        playBtn.setAttribute('aria-pressed','false');
+      }
+    });
+
+    // Mute toggle
+    muteBtn.addEventListener('click', () => {
+      audio.muted = !audio.muted;
+      muteBtn.textContent = audio.muted ? 'Unmute 🔇' : 'Mute 🔈';
+      muteBtn.setAttribute('aria-pressed', String(audio.muted));
+    });
+
+    // Accessibility: keyboard shortcut (Space toggles play/pause when focused on Play)
+    playBtn.addEventListener('keydown', (e) => {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); playBtn.click(); }
+    });
+  </script>
+
+</body></html>
